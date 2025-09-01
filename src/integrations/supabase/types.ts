@@ -657,6 +657,7 @@ export type Database = {
           level_range: string | null
           poster_url: string | null
           price: number | null
+          slug: string
           title: string
           updated_at: string
         }
@@ -672,6 +673,7 @@ export type Database = {
           level_range?: string | null
           poster_url?: string | null
           price?: number | null
+          slug?: string
           title: string
           updated_at?: string
         }
@@ -687,6 +689,7 @@ export type Database = {
           level_range?: string | null
           poster_url?: string | null
           price?: number | null
+          slug?: string
           title?: string
           updated_at?: string
         }

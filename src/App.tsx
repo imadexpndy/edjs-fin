@@ -11,7 +11,6 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Unauthorized from "./pages/Unauthorized";
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
-import SpectacleManagerComplete from '@/pages/admin/SpectacleManagerComplete';
 import AdminSessions from "./pages/admin/AdminSessions";
 import AdminApiKeys from "./pages/admin/AdminApiKeys";
 import AdminUsers from "./pages/admin/AdminUsers";
@@ -70,7 +69,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/admin/spectacles" element={<SpectacleManagerComplete />} />
+              <Route path="/admin/spectacles" element={<AdminDashboard />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
@@ -96,7 +95,7 @@ const App = () => {
                 path="/admin/spectacles" 
                 element={
                   <ProtectedRoute allowedRoles={['super_admin', 'admin_full', 'admin_spectacles', 'admin_schools', 'admin_partners', 'admin_support', 'admin_notifications', 'admin_editor']}>
-                    <SpectacleManagerComplete />
+                    <AdminDashboard />
                   </ProtectedRoute>
                 } 
               />
