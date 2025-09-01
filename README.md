@@ -1,13 +1,65 @@
 # EDJS - Plateforme Culturelle
 
+## EDJS Platform
+
+Complete platform combining the EDJS website with the React web application for user management and authentication.
+
 ## Description
 EDJS est une plateforme culturelle qui connecte les spectacles théâtraux et culturels avec les écoles, associations et familles au Maroc. Notre mission est de rendre la culture accessible à tous.
 
-## Fonctionnalités
-- **Pour les Écoles**: Accès gratuit aux spectacles pour les écoles publiques, tarifs préférentiels pour les écoles privées
-- **Pour les Associations**: Partenariats et programmes culturels
-- **Pour les Familles**: Réservation de billets et découverte de spectacles
-- **Pour les Partenaires**: Collaboration et soutien culturel
+## Project Structure
+
+- **Root Level**: EDJS website (HTML/CSS/JS) - Main public website
+- **React App**: User dashboard and authentication system
+- **Supabase**: Backend authentication and database
+
+## Development
+
+### Run Both Applications
+
+```bash
+# Install dependencies
+npm install
+
+# Run both website and React app
+npm run dev:both
+```
+
+This will start:
+- EDJS website on `http://localhost:8000`
+- React app on `http://localhost:5173`
+
+### Run Individually
+
+```bash
+# Website only
+npm run dev:website
+
+# React app only  
+npm run dev
+```
+
+## Features
+
+### EDJS Website
+- Complete theater platform for schools and families
+- Spectacle listings and details
+- Contact and registration forms
+- Authentication integration with Supabase
+
+### React Web App
+- User registration and profile management
+- Email confirmation system
+- Admin dashboard
+- Role-based access control
+- Organization management
+
+## Authentication Flow
+
+1. Users visit main website (`index.html`)
+2. Registration redirects to React app (`/auth?mode=register`)
+3. After registration, email confirmation modal appears
+4. Users can access dashboards based on their role
 
 ## Spectacles Disponibles
 - Casse-Noisette (Âge 4-12)
