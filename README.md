@@ -1,73 +1,47 @@
-# Welcome to your Lovable project
+# EDJS - Plateforme Culturelle
 
-## Project info
+## Description
+EDJS est une plateforme culturelle qui connecte les spectacles théâtraux et culturels avec les écoles, associations et familles au Maroc. Notre mission est de rendre la culture accessible à tous.
 
-**URL**: https://lovable.dev/projects/f3575375-e12f-494b-b0f8-b87b92e76f09
+## Fonctionnalités
+- **Pour les Écoles**: Accès gratuit aux spectacles pour les écoles publiques, tarifs préférentiels pour les écoles privées
+- **Pour les Associations**: Partenariats et programmes culturels
+- **Pour les Familles**: Réservation de billets et découverte de spectacles
+- **Pour les Partenaires**: Collaboration et soutien culturel
 
-## How can I edit this code?
+## Spectacles Disponibles
+- Casse-Noisette (Âge 4-12)
+- Conte Musical (Âge 3-8)
+- Théâtre Jeunesse (Âge 8-15)
+- Spectacle Familial (Tout âge)
 
-There are several ways of editing your application.
+## Technologies Utilisées
+- HTML5
+- CSS3 (Bootstrap)
+- JavaScript (GSAP, Swiper.js, AOS)
+- Responsive Design
 
-**Use Lovable**
+## Installation et Lancement
+1. Clonez le repository
+2. Ouvrez le dossier du projet
+3. Lancez un serveur local:
+   ```bash
+   python3 -m http.server 8000
+   ```
+4. Ouvrez votre navigateur à `http://localhost:8000`
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f3575375-e12f-494b-b0f8-b87b92e76f09) and start prompting.
+## Structure du Projet
+- `index.html` - Page d'accueil
+- `about.html` - À propos
+- `schools.html` - Page pour les écoles
+- `families.html` - Page pour les familles
+- `associations.html` - Page pour les associations
+- `partners.html` - Page pour les partenaires
+- `assets/` - Ressources (CSS, JS, images)
 
-Changes made via Lovable will be committed automatically to this repo.
+## Contact
+- Email: info@edjs.ma
+- Téléphone: +212 5 22 98 10 85
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/f3575375-e12f-494b-b0f8-b87b92e76f09) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Licence
+© 2025 EDJS. Tous droits réservés.
