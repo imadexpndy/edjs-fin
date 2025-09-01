@@ -8,7 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Upload, Building2, Users, GraduationCap, User, CheckCircle, Sparkles } from 'lucide-react';
+import { ArrowLeft, Upload, Building2, Users, GraduationCap, User, CheckCircle, Sparkles, MapPin } from 'lucide-react';
+import { organizations, getOrganizationsByTypeAndCity, type Organization } from '@/data/organizations';
+import { EmailConfirmationModal } from '@/components/EmailConfirmationModal';
 
 interface School {
   id: string;
@@ -30,6 +32,8 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
   const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState<string[]>([]);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const { toast } = useToast();
 
   // Form data
@@ -41,6 +45,8 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
     phone: '',
     whatsapp: '',
     professionalEmail: '',
+    city: '' as 'casablanca' | 'rabat' | '',
+    organizationId: '',
     schoolId: '',
     schoolType: '',
     newSchoolName: '',
@@ -152,9 +158,19 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: formData.fullName,
+            phone: formData.phone
+          }
         }
       });
+
+      console.log('Registration response:', { authData, authError });
+      console.log('User created:', authData?.user);
+      console.log('Email confirmed:', authData?.user?.email_confirmed_at);
+      console.log('Confirmation sent:', authData?.user?.confirmation_sent_at);
+      console.log('Session:', authData?.session);
 
       if (authError) throw authError;
 
@@ -232,17 +248,18 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
 
       if (profileError) throw profileError;
 
-      toast({
-        title: "Inscription réussie",
-        description: "Vérifiez votre email pour confirmer votre compte",
-      });
+      // Show email confirmation modal instead of toast
+      setRegisteredEmail(formData.email);
+      setShowEmailConfirmation(true);
 
-      // Redirect based on verification status
+      // Additional message for pending verification
       if (verificationStatus === 'pending') {
-        toast({
-          title: "En attente de vérification",
-          description: "Votre compte sera activé après validation par un administrateur",
-        });
+        setTimeout(() => {
+          toast({
+            title: "En attente de vérification",
+            description: "Votre compte sera activé après validation par un administrateur",
+          });
+        }, 1000);
       }
 
     } catch (error: any) {
@@ -259,7 +276,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
 
   const renderCategorySelection = () => (
     <div className="space-y-8">      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-3xl mx-auto">
         <Card 
           className={`group cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl border-2 ${
             userCategory === 'b2c' 
@@ -271,20 +288,21 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
             setUserType('b2c');
           }}
         >
-          <CardContent className="p-10 text-center relative overflow-hidden">
+          <CardContent className="p-6 md:p-8 text-center relative">
+            {/* Decorative elements */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-full transform translate-x-16 -translate-y-16" />
             
             <div className="relative z-10">
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
-                <User className="h-10 w-10 text-white" />
+              <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 md:mb-6 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
+                <Users className="h-8 w-8 md:h-10 md:w-10 text-white" />
               </div>
               
-              <h3 className="text-2xl font-bold mb-3 text-foreground">Particulier</h3>
-              <p className="text-muted-foreground leading-relaxed mb-6">
+              <h3 className="text-xl md:text-2xl font-bold mb-3 text-foreground">Particulier</h3>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4 md:mb-6">
                 Parents et familles souhaitant acheter des billets individuellement
               </p>
               
-              <div className="bg-gradient-to-r from-accent/20 to-primary/10 rounded-xl p-4 border border-accent/20">
+              <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                   <p className="text-sm font-semibold text-foreground">Accès immédiat</p>
@@ -303,20 +321,21 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
           }`}
           onClick={() => setUserCategory('b2b')}
         >
-          <CardContent className="p-10 text-center relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-accent/10 to-transparent rounded-full transform translate-x-16 -translate-y-16" />
+          <CardContent className="p-6 md:p-8 text-center relative">
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-full transform translate-x-16 -translate-y-16" />
             
             <div className="relative z-10">
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-accent to-accent/80 rounded-2xl flex items-center justify-center shadow-lg">
-                <Building2 className="h-10 w-10 text-white" />
+              <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 md:mb-6 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
+                <GraduationCap className="h-8 w-8 md:h-10 md:w-10 text-white" />
               </div>
               
-              <h3 className="text-2xl font-bold mb-3 text-foreground">Professionnel</h3>
-              <p className="text-muted-foreground leading-relaxed mb-6">
-                Enseignants, associations et organismes éducatifs
+              <h3 className="text-xl md:text-2xl font-bold mb-3 text-foreground">Professionnel</h3>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4 md:mb-6">
+                Écoles, associations, centres de loisirs et organisations
               </p>
               
-              <div className="bg-gradient-to-r from-primary/10 to-accent/20 rounded-xl p-4 border border-primary/20">
+              <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <div className="w-2 h-2 bg-primary rounded-full" />
                   <p className="text-sm font-semibold text-foreground">Tarifs préférentiels</p>
@@ -329,7 +348,11 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
       </div>
 
       <div className="flex justify-between pt-6">
-        <Button variant="outline" onClick={onBack} className="px-8 py-3 hover:scale-105 transition-transform">
+        <Button 
+          variant="outline" 
+          onClick={onBack} 
+          className="px-8 py-3 hover:scale-105 transition-transform"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Retour
         </Button>
@@ -337,11 +360,117 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
           onClick={() => {
             setIsTransitioning(true);
             setTimeout(() => {
-              setStep(2);
+              if (userCategory === 'b2c') {
+                setStep(4); // Skip city selection for B2C users
+              } else {
+                setStep(2); // City selection for B2B users
+              }
               setIsTransitioning(false);
             }, 200);
           }} 
           disabled={!userCategory}
+          className="px-8 py-3 hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span className="flex items-center gap-2">
+            Continuer
+            <Sparkles className="h-4 w-4 animate-pulse" />
+          </span>
+        </Button>
+      </div>
+    </div>
+  );
+
+  const renderCitySelection = () => (
+    <div className="space-y-8">
+      <div className="text-center mb-8 animate-fade-in">
+        <h3 className="text-2xl font-semibold mb-3 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+          Dans quelle ville êtes-vous situé ?
+        </h3>
+        <p className="text-muted-foreground text-lg">Sélectionnez votre ville pour voir les organisations disponibles</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+        <Card 
+          className={`group cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl border-2 ${
+            formData.city === 'casablanca' 
+              ? 'ring-2 ring-primary border-primary bg-primary/5' 
+              : 'border-border hover:border-primary/50'
+          }`}
+          onClick={() => setFormData(prev => ({...prev, city: 'casablanca'}))}
+        >
+          <CardContent className="p-8 text-center relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-full transform translate-x-16 -translate-y-16" />
+            
+            <div className="relative z-10">
+              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
+                <MapPin className="h-8 w-8 text-white" />
+              </div>
+              
+              <h3 className="text-xl font-bold mb-3 text-foreground">Casablanca</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Centre économique du Maroc
+              </p>
+              
+              {formData.city === 'casablanca' && (
+                <div className="mt-4 animate-scale-in">
+                  <CheckCircle className="h-6 w-6 text-primary mx-auto animate-pulse" />
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card 
+          className={`group cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl border-2 ${
+            formData.city === 'rabat' 
+              ? 'ring-2 ring-primary border-primary bg-primary/5' 
+              : 'border-border hover:border-primary/50'
+          }`}
+          onClick={() => setFormData(prev => ({...prev, city: 'rabat'}))}
+        >
+          <CardContent className="p-8 text-center relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-full transform translate-x-16 -translate-y-16" />
+            
+            <div className="relative z-10">
+              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-accent to-accent/80 rounded-2xl flex items-center justify-center shadow-lg">
+                <MapPin className="h-8 w-8 text-white" />
+              </div>
+              
+              <h3 className="text-xl font-bold mb-3 text-foreground">Rabat</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Capitale administrative du Maroc
+              </p>
+              
+              {formData.city === 'rabat' && (
+                <div className="mt-4 animate-scale-in">
+                  <CheckCircle className="h-6 w-6 text-primary mx-auto animate-pulse" />
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex justify-between pt-6 animate-fade-in">
+        <Button variant="outline" onClick={() => {
+          setIsTransitioning(true);
+          setTimeout(() => {
+            setStep(1);
+            setIsTransitioning(false);
+          }, 200);
+        }} className="px-8 py-3 hover:scale-105 transition-transform">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Retour
+        </Button>
+        <Button 
+          onClick={() => {
+            setIsTransitioning(true);
+            setTimeout(() => {
+              setStep(3);
+              setIsTransitioning(false);
+            }, 200);
+          }} 
+          disabled={!formData.city}
           className="px-8 py-3 hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span className="flex items-center gap-2">
@@ -427,7 +556,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
         <Button variant="outline" onClick={() => {
           setIsTransitioning(true);
           setTimeout(() => {
-            setStep(1);
+            setStep(2);
             setIsTransitioning(false);
           }, 200);
         }} className="px-8 py-3 hover:scale-105 transition-transform">
@@ -438,7 +567,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
           onClick={() => {
             setIsTransitioning(true);
             setTimeout(() => {
-              setStep(3);
+              setStep(4);
               setIsTransitioning(false);
             }, 200);
           }} 
@@ -534,7 +663,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
         <Button variant="outline" onClick={() => {
           setIsTransitioning(true);
           setTimeout(() => {
-            setStep(userCategory === 'b2c' ? 1 : 2);
+            setStep(userCategory === 'b2c' ? 1 : 3);
             setIsTransitioning(false);
           }, 200);
         }} className="px-8 py-3 hover:scale-105 transition-transform">
@@ -545,7 +674,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
           onClick={() => {
             setIsTransitioning(true);
             setTimeout(() => {
-              setStep(userCategory === 'b2c' ? 3 : 4);
+              setStep(userCategory === 'b2c' ? 5 : 5);
               setIsTransitioning(false);
             }, 200);
           }}
@@ -573,7 +702,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
           </Alert>
           
             <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep(userCategory === 'b2c' ? 2 : 3)}>
+              <Button variant="outline" onClick={() => setStep(4)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
               </Button>
@@ -586,31 +715,31 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
     }
 
           if (userType === 'teacher_private' || userType === 'teacher_public') {
-            const schoolType = userType === 'teacher_private' ? 'private' : 'public';
+            const organizationType = userType === 'teacher_private' ? 'private_school' : 'public_school';
+            const availableOrganizations = formData.city ? getOrganizationsByTypeAndCity(organizationType, formData.city) : [];
+            
             return (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="school">École *</Label>
-                  <Select value={formData.schoolId} onValueChange={(value) => setFormData(prev => ({...prev, schoolId: value, schoolType}))}>
+                  <Label htmlFor="organization">École *</Label>
+                  <Select value={formData.organizationId} onValueChange={(value) => setFormData(prev => ({...prev, organizationId: value, schoolType: organizationType}))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionnez votre école" />
                     </SelectTrigger>
                     <SelectContent>
-                      {schools
-                        .filter(school => school.school_type === schoolType)
-                        .map(school => (
-                          <SelectItem key={school.id} value={school.id}>
-                            {school.name} - {school.city}
-                          </SelectItem>
-                        ))}
+                      {availableOrganizations.map(org => (
+                        <SelectItem key={org.id} value={org.id}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
                       <SelectItem value="other">Autre (créer une nouvelle école)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                {formData.schoolId === 'other' && (
+                {formData.organizationId === 'other' && (
                   <div className="space-y-4 p-4 border rounded-lg">
-                    <h4 className="font-semibold">Nouvelle école {schoolType === 'private' ? 'privée' : 'publique'}</h4>
+                    <h4 className="font-semibold">Nouvelle école {organizationType === 'private_school' ? 'privée' : 'publique'}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="newSchoolName">Nom de l'école *</Label>
@@ -704,13 +833,13 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
                 )}
 
                 <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setStep(3)}>
+                  <Button variant="outline" onClick={() => setStep(4)}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Retour
                   </Button>
                   <Button 
                     onClick={handleSubmit} 
-                    disabled={loading || !formData.schoolId || !formData.professionalEmail || (userType === 'teacher_public' && uploadedDocs.length === 0)}
+                    disabled={loading || !formData.organizationId || !formData.professionalEmail || (userType === 'teacher_public' && uploadedDocs.length === 0)}
                   >
                     {loading ? "Création..." : "Créer mon compte"}
                   </Button>
@@ -720,27 +849,51 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
           }
 
     if (userType === 'association') {
+      const availableAssociations = formData.city ? getOrganizationsByTypeAndCity('association', formData.city) : [];
+      
       return (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="associationName">Nom de l'association *</Label>
-              <Input
-                id="associationName"
-                value={formData.associationName}
-                onChange={(e) => setFormData(prev => ({...prev, associationName: e.target.value}))}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="associationICE">ICE / Numéro officiel</Label>
-              <Input
-                id="associationICE"
-                value={formData.associationICE}
-                onChange={(e) => setFormData(prev => ({...prev, associationICE: e.target.value}))}
-              />
-            </div>
+          <div>
+            <Label htmlFor="associationSelect">Association *</Label>
+            <Select value={formData.organizationId} onValueChange={(value) => setFormData(prev => ({...prev, organizationId: value}))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionnez votre association" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableAssociations.map(org => (
+                  <SelectItem key={org.id} value={org.id}>
+                    {org.name}
+                  </SelectItem>
+                ))}
+                <SelectItem value="other">Autre (créer une nouvelle association)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          {formData.organizationId === 'other' && (
+            <div className="space-y-4 p-4 border rounded-lg">
+              <h4 className="font-semibold">Nouvelle association</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="associationName">Nom de l'association *</Label>
+                  <Input
+                    id="associationName"
+                    value={formData.associationName}
+                    onChange={(e) => setFormData(prev => ({...prev, associationName: e.target.value}))}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="associationICE">ICE / Numéro officiel</Label>
+                  <Input
+                    id="associationICE"
+                    value={formData.associationICE}
+                    onChange={(e) => setFormData(prev => ({...prev, associationICE: e.target.value}))}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           <div>
             <Label htmlFor="contactPerson">Personne de contact *</Label>
@@ -798,13 +951,13 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
           </Alert>
 
             <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep(3)}>
+              <Button variant="outline" onClick={() => setStep(4)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
               </Button>
               <Button 
                 onClick={handleSubmit} 
-                disabled={loading || !formData.associationName || !formData.contactPerson || uploadedDocs.length === 0}
+                disabled={loading || !formData.organizationId || (formData.organizationId === 'other' && (!formData.associationName || !formData.contactPerson)) || uploadedDocs.length === 0}
               >
                 {loading ? "Création..." : "Créer mon compte"}
               </Button>
@@ -819,27 +972,30 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
   const getStepTitle = () => {
     switch (step) {
       case 1: return "Choisir mon profil";
-      case 2: return userCategory === 'b2c' ? "Informations personnelles" : "Type professionnel";
-      case 3: return userCategory === 'b2c' ? "Finalisation" : "Informations personnelles";
-      case 4: 
+      case 2: return "Sélectionner votre ville";
+      case 3: return "Type professionnel";
+      case 4: return "Informations personnelles";
+      case 5: 
         if (userType === 'teacher_private' || userType === 'teacher_public') return "Informations scolaires";
         if (userType === 'association') return "Informations association";
+        if (userType === 'b2c') return "Finalisation";
         return "Informations spécifiques";
       default: return "";
     }
   };
 
-  const maxSteps = userCategory === 'b2c' ? 3 : 4;
+  const maxSteps = userCategory === 'b2c' ? 5 : 5;
   const progress = (step / maxSteps) * 100;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/8 via-primary/4 to-primary/12 p-4 relative overflow-hidden">
       {/* Enhanced animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-primary/8 to-transparent rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-128 h-128 bg-gradient-to-br from-primary/6 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-primary-glow/6 to-transparent rounded-full blur-2xl animate-pulse" style={{ animationDelay: '4s' }} />
-        <div className="absolute top-3/4 left-1/3 w-48 h-48 bg-gradient-to-br from-primary/4 to-transparent rounded-full blur-2xl animate-pulse" style={{ animationDelay: '6s' }} />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-primary/12 to-transparent rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-128 h-128 bg-gradient-to-br from-accent/8 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-primary-glow/10 to-transparent rounded-full blur-2xl animate-pulse" style={{ animationDelay: '4s' }} />
+        <div className="absolute top-3/4 left-1/3 w-48 h-48 bg-gradient-to-br from-primary/8 to-transparent rounded-full blur-2xl animate-pulse" style={{ animationDelay: '6s' }} />
+        <div className="absolute top-1/6 right-1/3 w-32 h-32 bg-gradient-to-br from-accent/6 to-transparent rounded-full blur-xl animate-pulse" style={{ animationDelay: '8s' }} />
       </div>
       
       
@@ -855,62 +1011,49 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
         </Button>
       </div>
 
-      {/* Enhanced progress indicator */}
-      <div className="absolute top-6 right-6 z-20 bg-card/90 backdrop-blur-xl rounded-xl p-6 border border-primary/20 shadow-xl min-w-[240px]">
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-sm font-medium text-muted-foreground">Étape {step} sur {maxSteps}</span>
-          <span className="text-lg font-bold text-primary">{Math.round(progress)}%</span>
-        </div>
-        <div className="w-full bg-muted/20 rounded-full h-4 overflow-hidden border border-primary/10">
-          <div 
-            className="bg-gradient-to-r from-primary via-primary-glow to-primary h-full rounded-full transition-all duration-700 ease-in-out transform shadow-glow"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-          <span>Début</span>
-          <span>Terminé</span>
-        </div>
-      </div>
 
-      <div className="w-full max-w-6xl mx-auto relative z-10 mt-24">
+      <div className="w-full max-w-3xl mx-auto relative z-10 mt-6 md:mt-12 px-4">
 
-      {/* Enhanced main card */}
-      <Card className="w-full border-0 shadow-elegant bg-card/95 backdrop-blur-xl overflow-hidden relative">
+      {/* Main card */}
+      <Card className="w-full border-0 shadow-xl bg-card/95 backdrop-blur-xl overflow-hidden relative">
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-primary/6 pointer-events-none" />
         
         {/* Decorative elements */}
         <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-2xl" />
-        <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-br from-accent/20 to-transparent rounded-full blur-xl" />
+        <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-xl" />
         
-        <CardHeader className="relative text-center pb-10 pt-12">
-          <div className="space-y-4">
-            {/* Icon indicator */}
-            <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary to-primary-glow rounded-full flex items-center justify-center shadow-glow mb-6">
-              {step === 1 && <User className="h-8 w-8 text-primary-foreground" />}
-              {step === 2 && userCategory === 'b2b' && <Building2 className="h-8 w-8 text-primary-foreground" />}
-              {step === 2 && userCategory === 'b2c' && <User className="h-8 w-8 text-primary-foreground" />}
-              {step === 3 && <GraduationCap className="h-8 w-8 text-primary-foreground" />}
-              {step === 4 && <Upload className="h-8 w-8 text-primary-foreground" />}
-            </div>
-            
-            <CardTitle className="text-5xl font-bold bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent animate-fade-in">
+        {/* Progress indicator at top */}
+        <div className="w-full bg-primary/5 border-b border-primary/10 p-4">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-sm font-medium text-muted-foreground">Étape {step} sur {maxSteps}</span>
+            <span className="text-lg font-bold text-primary">{Math.round(progress)}%</span>
+          </div>
+          <div className="w-full bg-muted/20 rounded-full h-3 overflow-hidden border border-primary/10">
+            <div 
+              className="bg-gradient-to-r from-primary via-primary-glow to-primary h-full rounded-full transition-all duration-700 ease-in-out transform shadow-glow"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+
+        <CardHeader className="relative text-center pb-6 pt-8">
+          <div className="space-y-3">
+            <CardTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent animate-fade-in">
               {getStepTitle()}
             </CardTitle>
-            <div className="w-32 h-1.5 bg-gradient-to-r from-primary via-primary-glow to-primary mx-auto rounded-full shadow-glow" />
-            <CardDescription className="text-xl text-muted-foreground mt-6 max-w-3xl mx-auto leading-relaxed">
+            <div className="w-24 h-1 bg-gradient-to-r from-primary via-primary-glow to-primary mx-auto rounded-full shadow-glow" />
+            <CardDescription className="text-sm md:text-base text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed px-4">
               {step === 1 && "Commençons par identifier votre profil pour personnaliser votre expérience théâtrale"}
-              {step === 2 && userCategory === 'b2b' && "Précisez votre type d'organisation pour des services adaptés à vos besoins"}
-              {step === 2 && userCategory === 'b2c' && "Vos informations personnelles pour finaliser votre compte"}
-              {step === 3 && userCategory === 'b2b' && "Vos informations personnelles pour compléter votre profil professionnel"}
-              {step === 3 && userCategory === 'b2c' && "Dernière étape pour finaliser votre inscription"}
-              {step === 4 && "Informations spécifiques à votre organisation pour la validation"}
+              {step === 2 && userCategory === 'b2b' && "Sélectionnez votre ville pour voir les organisations disponibles"}
+              {step === 3 && userCategory === 'b2b' && "Précisez votre type d'organisation pour des services adaptés à vos besoins"}
+              {step === 4 && "Vos informations personnelles pour compléter votre profil"}
+              {step === 5 && "Informations spécifiques à votre organisation pour la validation"}
             </CardDescription>
           </div>
         </CardHeader>
         
-        <CardContent className="relative px-20 pb-16">
+        <CardContent className="relative px-6 md:px-12 pb-10">
           <div 
             className={`transition-all duration-500 ease-in-out transform ${
               isTransitioning 
@@ -926,25 +1069,20 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
               )}
               {step === 2 && userCategory === 'b2b' && (
                 <div className="animate-slide-in-right">
-                  {renderUserTypeSelection()}
-                </div>
-              )}
-              {step === 2 && userCategory === 'b2c' && (
-                <div className="animate-slide-in-right">
-                  {renderBasicInfo()}
+                  {renderCitySelection()}
                 </div>
               )}
               {step === 3 && userCategory === 'b2b' && (
                 <div className="animate-slide-in-right">
-                  {renderBasicInfo()}
-                </div>
-              )}
-              {step === 3 && userCategory === 'b2c' && (
-                <div className="animate-slide-in-right">
-                  {renderSpecificInfo()}
+                  {renderUserTypeSelection()}
                 </div>
               )}
               {step === 4 && (
+                <div className="animate-slide-in-right">
+                  {renderBasicInfo()}
+                </div>
+              )}
+              {step === 5 && (
                 <div className="animate-slide-in-right">
                   {renderSpecificInfo()}
                 </div>
@@ -954,6 +1092,16 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ onBack }) =>
         </CardContent>
       </Card>
       </div>
+
+      {/* Email Confirmation Modal */}
+      <EmailConfirmationModal
+        isOpen={showEmailConfirmation}
+        onClose={() => {
+          setShowEmailConfirmation(false);
+          onBack(); // Return to login after closing modal
+        }}
+        email={registeredEmail}
+      />
     </div>
   );
 };

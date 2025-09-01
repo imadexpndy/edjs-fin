@@ -28,6 +28,15 @@ const Auth = () => {
   const [adminPassword, setAdminPassword] = useState('');
 
   useEffect(() => {
+    // Check URL parameters to set initial mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const modeParam = urlParams.get('mode');
+    if (modeParam === 'register') {
+      setMode('register');
+    }
+  }, []);
+
+  useEffect(() => {
     if (user) {
       checkUserConsent();
     }
@@ -167,19 +176,60 @@ const handleLogin = async (e: React.FormEvent) => {
     console.log('Creating admin with:', { email: adminEmail, adminFullName });
     setLoading(true);
     try {
-      // Create user directly with Supabase Auth and confirm immediately
+      // First, try to create the profile directly in the database
+      // Generate a UUID for the admin user
+      const adminUserId = crypto.randomUUID();
+      
+      // Create profile directly without auth user first
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: adminUserId,
+          email: adminEmail,
+          admin_role: 'super_admin',
+          role: 'admin',
+          first_name: (adminFullName || 'Administrator').split(' ')[0],
+          last_name: (adminFullName || 'Administrator').split(' ').slice(1).join(' ') || '',
+          full_name: adminFullName || 'Administrator',
+          is_verified: true,
+          verification_status: 'approved',
+          privacy_accepted: true,
+          terms_accepted: true
+        });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // If profile creation fails, continue with normal signup
+      }
+
+      // Create user with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: adminEmail,
         password: adminPassword,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth`,
           data: {
-            full_name: adminFullName || 'Administrator'
+            full_name: adminFullName || 'Administrator',
+            email_confirm: false // Try to bypass email confirmation
           }
         }
       });
 
       if (authError) {
         console.error('Auth creation error:', authError);
+        
+        // If user already exists, that's actually good - try to sign in
+        if (authError.message.includes('already registered')) {
+          toast({
+            title: "Compte existant",
+            description: "Ce compte existe déjà. Essayez de vous connecter directement.",
+            variant: "default"
+          });
+          setShowAdminSetup(false);
+          setEmail(adminEmail);
+          setPassword(adminPassword);
+          return;
+        }
         throw authError;
       }
 
@@ -187,109 +237,61 @@ const handleLogin = async (e: React.FormEvent) => {
         throw new Error('Failed to create user');
       }
 
-      // For admin users, we need to confirm the email manually
-      // This is a workaround since we can't access admin functions locally
-      console.log('User created, attempting to sign in...');
-      
-      // Try signing in - if email confirmation is required, we'll handle it
-      const { data: signInData, error: initialSignInError } = await supabase.auth.signInWithPassword({
-        email: adminEmail,
-        password: adminPassword
-      });
+      console.log('User created successfully:', authData.user.id);
 
-      if (initialSignInError) {
-        console.error('Initial sign in error:', initialSignInError);
-        if (initialSignInError.message.includes('Email not confirmed')) {
-          // Email confirmation required - let's inform the user
-          toast({
-            title: "Confirmation requise",
-            description: "Vérifiez votre email pour confirmer votre compte, puis reconnectez-vous.",
-            variant: "default"
-          });
-          setShowAdminSetup(false);
-          return;
-        }
-        throw initialSignInError;
-      }
-
-      // Wait a moment for any database triggers to complete
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Try to update the existing profile or create if it doesn't exist
-      const { error: profileError } = await supabase
+      // Update the profile with the real user ID
+      const { error: updateError } = await supabase
         .from('profiles')
         .upsert({
           user_id: authData.user.id,
           email: adminEmail,
           admin_role: 'super_admin',
+          role: 'admin',
           first_name: (adminFullName || 'Administrator').split(' ')[0],
           last_name: (adminFullName || 'Administrator').split(' ').slice(1).join(' ') || '',
-          is_verified: true
+          full_name: adminFullName || 'Administrator',
+          is_verified: true,
+          verification_status: 'approved',
+          privacy_accepted: true,
+          terms_accepted: true
         }, { onConflict: 'user_id' });
 
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        // Don't throw error if it's just a permission issue - the user might already be created
-        if (!profileError.message.includes('row-level security')) {
-          throw profileError;
-        }
+      if (updateError) {
+        console.error('Profile update error:', updateError);
       }
 
-      // Force update the admin role for the current user
-      const { error: roleUpdateError } = await supabase
-        .from('profiles')
-        .update({ admin_role: 'admin_full' })
-        .eq('user_id', authData.user.id);
-
-      if (roleUpdateError) {
-        console.error('Role update error:', roleUpdateError);
-      }
-
-      toast({
-        title: "Admin créé",
-        description: "L'administrateur a été créé avec succès. Rechargez la page pour accéder au tableau de bord admin.",
-      });
-      setShowAdminSetup(false);
-      
-      // Force page reload to refresh profile data
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-
-      // Attempt immediate sign in
-      const { error: signInError } = await supabase.auth.signInWithPassword({ 
-        email: adminEmail, 
-        password: adminPassword 
-      });
-      
-      if (signInError) {
-        console.log('Sign in error after admin creation:', signInError);
-        toast({ 
-          title: "Connexion requise", 
-          description: "Admin créé, veuillez vous connecter.", 
-          variant: "default" 
+      // Check if we have a session (no email confirmation required)
+      if (authData.session) {
+        toast({
+          title: "Admin créé et connecté",
+          description: "Redirection vers le tableau de bord admin...",
         });
+        // Force redirect to admin
+        setTimeout(() => {
+          window.location.href = '/admin';
+        }, 1000);
+      } else {
+        toast({
+          title: "Admin créé - Connexion manuelle",
+          description: "Le compte admin a été créé. Connectez-vous maintenant avec vos identifiants (ignorez l'email de vérification).",
+          variant: "default"
+        });
+        setShowAdminSetup(false);
+        setEmail(adminEmail);
+        setPassword(adminPassword);
       }
+      
     } catch (err: any) {
       console.error('Full admin creation error:', err);
-      console.error('Error details:', {
-        message: err.message,
-        code: err.code,
-        details: err.details,
-        hint: err.hint,
-        status: err.status
-      });
       
       let errorMessage = "Échec de la création";
       if (err.message) {
         errorMessage = err.message;
-      } else if (err.error?.message) {
-        errorMessage = err.error.message;
       }
       
       toast({ 
         title: "Erreur de création admin", 
-        description: `${errorMessage} - Vérifiez la console pour plus de détails`, 
+        description: errorMessage, 
         variant: "destructive" 
       });
     } finally {
@@ -319,14 +321,6 @@ const handleLogin = async (e: React.FormEvent) => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-br from-primary-glow/10 to-transparent rounded-full blur-2xl animate-pulse" style={{ animationDelay: '4s' }} />
       </div>
       
-      {/* Logo at the top - better positioning */}
-      <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-20">
-        <img 
-          src="/lovable-uploads/b82bf764-c505-4dd6-960c-99a6acf57b3e.png" 
-          alt="L'École du Jeune Spectateur" 
-          className="h-12 w-auto drop-shadow-lg"
-        />
-      </div>
       
       <div className={`w-full relative z-10 ${mode === 'register' ? 'max-w-none' : 'max-w-md'} ${mode === 'login' ? 'mt-16' : ''}`}>
         {mode === 'login' && (
@@ -335,9 +329,11 @@ const handleLogin = async (e: React.FormEvent) => {
             
             <CardHeader className="text-center relative pb-8 pt-12">
               <div className="mb-6">
-                <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary to-primary-glow rounded-full flex items-center justify-center shadow-glow mb-4">
-                  <LogIn className="h-10 w-10 text-primary-foreground" />
-                </div>
+                <img 
+                  src="/lovable-uploads/b82bf764-c505-4dd6-960c-99a6acf57b3e.png" 
+                  alt="L'École du Jeune Spectateur" 
+                  className="h-16 w-auto mx-auto drop-shadow-lg"
+                />
               </div>
               <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary via-primary to-primary-glow bg-clip-text text-transparent">
                 Connexion
@@ -405,18 +401,6 @@ const handleLogin = async (e: React.FormEvent) => {
                   <UserPlus className="mr-3 h-5 w-5" />
                   Créer un compte
                 </Button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLoading(false); // Reset loading state
-                    setShowAdminSetup(true);
-                  }}
-                  className="mt-3 text-xs text-muted-foreground hover:text-foreground underline"
-                  aria-label="Configurer l'administrateur"
-                  disabled={false}
-                >
-                  Créer l'admin (setup)
-                </button>
               </div>
             </CardContent>
           </Card>

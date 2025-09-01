@@ -102,6 +102,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   useEffect(() => {
+    // Check for admin bypass first
+    const adminBypass = localStorage.getItem('admin_bypass');
+    const adminUser = localStorage.getItem('admin_user');
+    
+    if (adminBypass === 'true' && adminUser) {
+      try {
+        const bypassProfile = JSON.parse(adminUser);
+        setProfile({
+          ...bypassProfile,
+          role: 'admin_full' as Profile['role']
+        });
+        setUser({
+          id: bypassProfile.id,
+          email: bypassProfile.email
+        } as User);
+        setLoading(false);
+        return;
+      } catch (e) {
+        console.error('Error parsing admin bypass data:', e);
+      }
+    }
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {

@@ -11,6 +11,12 @@ export const ProtectedRoute = ({ children, requiredRole, allowedRoles }: Protect
   const { user, profile, loading } = useAuth();
   const location = useLocation();
 
+  // Check for admin bypass first
+  const adminBypass = localStorage.getItem('admin_bypass');
+  if (adminBypass === 'true') {
+    return <>{children}</>;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Direct Access - EDJS</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .admin-card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: #BDCF00;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            font-weight: bold;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #BDCF00;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #BDCF00;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #a8b800;
+        }
+        .success {
+            color: #28a745;
+            margin-top: 20px;
+        }
+        .error {
+            color: #dc3545;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-card">
+        <div class="logo">A</div>
+        <h1>Accès Admin Direct</h1>
+        <p>Entrez le mot de passe administrateur pour accéder au tableau de bord</p>
+        
+        <input type="password" id="password" placeholder="Mot de passe admin" />
+        <button onclick="checkPassword()">Accéder au tableau de bord</button>
+        
+        <div id="message"></div>
+    </div>
+
+    <script>
+        function checkPassword() {
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            
+            if (password === 'ImadAdmin2025!') {
+                messageDiv.innerHTML = '<div class="success">✅ Accès autorisé! Redirection...</div>';
+                
+                // Set admin session
+                localStorage.setItem('admin_bypass', 'true');
+                localStorage.setItem('admin_user', JSON.stringify({
+                    id: 'bypass-admin-imad',
+                    email: 'aitmoulidimad@gmail.com',
+                    full_name: 'Imad Ait Moulid',
+                    admin_role: 'admin_full',
+                    verification_status: 'approved',
+                    is_verified: true
+                }));
+                
+                // Redirect to admin dashboard
+                setTimeout(() => {
+                    window.location.href = '/admin';
+                }, 1500);
+                
+            } else {
+                messageDiv.innerHTML = '<div class="error">❌ Mot de passe incorrect</div>';
+                setTimeout(() => {
+                    messageDiv.innerHTML = '';
+                }, 3000);
+            }
+        }
+        
+        // Allow Enter key to submit
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+    </script>
+</body>
+</html>

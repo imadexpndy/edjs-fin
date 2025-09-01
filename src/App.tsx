@@ -3,38 +3,40 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminBypass } from '@/components/AdminBypass';
+import { AuthProvider } from '@/hooks/useAuth';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { RoleBasedRouter } from "@/components/RoleBasedRouter";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Unauthorized from "./pages/Unauthorized";
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
-import AdminSpectacles from "./pages/admin/AdminSpectacles";
+import SpectacleManagerComplete from '@/pages/admin/SpectacleManagerComplete';
 import AdminSessions from "./pages/admin/AdminSessions";
-import PrivateSchoolBooking from "./pages/teacher/PrivateSchoolBooking";
-import PublicSchoolBooking from "./pages/teacher/PublicSchoolBooking";
+import AdminApiKeys from "./pages/admin/AdminApiKeys";
+import AdminUsers from "./pages/admin/AdminUsers";
+import OrganizationsManager from "./pages/admin/OrganizationsManager";
+import AdminCommunications from "./pages/admin/AdminCommunications";
+import AdminAudit from "./pages/admin/AdminAudit";
+import AdminStatistics from "./pages/admin/AdminStatistics";
+import AdminSettings from "./pages/admin/AdminSettings";
+import AdminSetup from "./pages/admin/AdminSetup";
+import AdminBookings from "./pages/admin/AdminBookings";
+import AdminInvitations from "./pages/admin/AdminInvitations";
 import TeacherDashboard from "./pages/dashboards/TeacherDashboard";
 import AssociationDashboard from "./pages/dashboards/AssociationDashboard";
-import AssociationBooking from "./pages/association/AssociationBooking";
 import PartnerDashboard from "./pages/dashboards/PartnerDashboard";
+import PrivateSchoolBooking from "./pages/teacher/PrivateSchoolBooking";
+import PublicSchoolBooking from "./pages/teacher/PublicSchoolBooking";
+import AssociationBooking from "./pages/association/AssociationBooking";
 import PartnerTicketAllocation from "./pages/partner/PartnerTicketAllocation";
 import B2CDashboard from "./pages/dashboards/B2CDashboard";
 import B2CBooking from "./pages/b2c/B2CBooking";
-import AdminBookings from "./pages/admin/AdminBookings";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import { Privacy } from "./pages/Privacy";
 import { Terms } from "./pages/Terms";
 import { healthCheck } from "./pages/api/health";
-import AdminSetup from "./pages/admin/AdminSetup";
-import AdminApiKeys from "./pages/admin/AdminApiKeys";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminOrganizations from "./pages/admin/AdminOrganizations";
-import AdminCommunications from "./pages/admin/AdminCommunications";
-import AdminAudit from "./pages/admin/AdminAudit";
-import AdminStatistics from "./pages/admin/AdminStatistics";
-import AdminSettings from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +70,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/admin/spectacles" element={<SpectacleManagerComplete />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
@@ -93,7 +96,7 @@ const App = () => {
                 path="/admin/spectacles" 
                 element={
                   <ProtectedRoute allowedRoles={['super_admin', 'admin_full', 'admin_spectacles', 'admin_schools', 'admin_partners', 'admin_support', 'admin_notifications', 'admin_editor']}>
-                    <AdminSpectacles />
+                    <SpectacleManagerComplete />
                   </ProtectedRoute>
                 } 
               />
@@ -125,7 +128,7 @@ const App = () => {
                 path="/admin/organizations" 
                 element={
                   <ProtectedRoute allowedRoles={['super_admin', 'admin_full', 'admin_spectacles', 'admin_schools', 'admin_partners', 'admin_support', 'admin_notifications', 'admin_editor']}>
-                    <AdminOrganizations />
+                    <OrganizationsManager />
                   </ProtectedRoute>
                 } 
               />
@@ -258,6 +261,14 @@ const App = () => {
                 element={
                   <ProtectedRoute allowedRoles={['super_admin', 'admin_full', 'admin_spectacles', 'admin_schools', 'admin_partners', 'admin_support', 'admin_notifications', 'admin_editor']}>
                     <AdminBookings />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/invitations" 
+                element={
+                  <ProtectedRoute allowedRoles={['super_admin', 'admin_full']}>
+                    <AdminInvitations />
                   </ProtectedRoute>
                 } 
               />
