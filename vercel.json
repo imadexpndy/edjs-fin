@@ -1,5 +1,10 @@
 {
+  "framework": null,
   "rewrites": [
+    {
+      "source": "/auth/(.*)",
+      "destination": "/dist/index.html"
+    },
     {
       "source": "/about",
       "destination": "/about.html"
