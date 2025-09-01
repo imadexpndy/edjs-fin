@@ -2008,11 +2008,11 @@
             <div class="col-auto">
               <div class="vs-header__action">
                 <div class="vs-header__right d-none d-md-inline-flex" style="display: flex; gap: 15px; align-items: center;">
-                  <button class="auth-btn login-btn" onclick="window.authManager?.showLoginModal() || window.open('https://edjs.art/auth', '_blank')">
+                  <button class="auth-btn login-btn" onclick="window.authManager?.showLoginModal() || (window.location.href='/auth')">
                     <i class="fas fa-user-circle"></i>
                     Se connecter
                   </button>
-                  <button class="auth-btn register-btn" onclick="window.open('https://edjs.art/auth?mode=register', '_blank')">
+                  <button class="auth-btn register-btn" onclick="window.location.href='/auth?mode=register'">
                     <i class="fas fa-star"></i>
                     S'inscrire
                   </button>
@@ -2194,7 +2194,7 @@
                   <li>Découverte artistique : un accès privilégié aux pièces nationales et internationales adaptées à leur âge.</li>
                   <li>Éducation par l'art : apprendre les codes du spectacle vivant et développer leur esprit critique.</li>
                 </ul>
-                <a href="https://edjs.art/auth?mode=register" class="vs-btn">S'inscrire</a>
+                <a href="/auth?mode=register" class="vs-btn">S'inscrire</a>
                 <a href="contact.html" class="vs-btn"><span class="vs-btn__border"></span>Contactez-nous</a>
               </div>
             </div>
@@ -2280,9 +2280,9 @@
           </div>
         </div>
         <div class="z-index-common" style="padding-bottom: 60px;">
-          <div class="row justify-content-center swiper vs-carousel vs-carousel--service z-index-common pl-0" data-xl="3" data-loop="true" data-autoplay-delay="6000" data-nav-next=".nav-next-2" data-nav-prev=".nav-prev-1">
+          <div class="swiper vs-carousel vs-carousel--service z-index-common" data-xl="3" data-lg="3" data-md="2" data-sm="1" data-xs="1" data-loop="true" data-autoplay="false" data-autoplay-delay="6000" data-nav-next=".nav-next-2" data-nav-prev=".nav-prev-1">
             <div class="swiper-wrapper">
-              <div class="col-lg-4 col-md-6 swiper-slide">
+              <div class="swiper-slide">
                 <div class="vs-service wow animate__fadeInUp" data-wow-delay="0.25s" style="border-radius: 20px; border: 2px solid #000; transition: all 0.3s ease; overflow: hidden; background: white;">
                   <div class="vs-service__figure" style="position: relative; overflow: hidden; border-radius: 20px 20px 0 0;">
                     <a href="service-details" class="vs-service__image--link" style="display: block; position: relative; overflow: hidden;">
@@ -2307,7 +2307,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-lg-4 col-md-6 swiper-slide">
+              <div class="swiper-slide">
                 <div class="vs-service wow animate__fadeInUp" data-wow-delay="0.35s" style="border-radius: 20px; border: 2px solid #000; transition: all 0.3s ease; overflow: hidden; background: white; position: relative;">
                   <div class="vs-service__figure" style="position: relative; overflow: hidden; border-radius: 20px 20px 0 0;">
                     <a href="service-details" class="vs-service__image--link" style="display: block; position: relative; overflow: hidden;">
@@ -2332,7 +2332,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-lg-4 col-md-6 swiper-slide">
+              <div class="swiper-slide">
                 <div class="vs-service wow animate__fadeInUp" data-wow-delay="0.45s" style="border-radius: 20px; border: 2px solid #000; transition: all 0.3s ease; overflow: hidden; background: white; position: relative;">
                   <div class="vs-service__figure" style="position: relative; overflow: hidden; border-radius: 20px 20px 0 0;">
                     <a href="service-details" class="vs-service__image--link" style="display: block; position: relative; overflow: hidden;">
@@ -2357,7 +2357,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-lg-4 col-md-6 swiper-slide">
+              <div class="swiper-slide">
                 <div class="vs-service wow animate__fadeInUp" data-wow-delay="0.55s" style="border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.05); transition: all 0.3s ease; overflow: hidden; background: white; position: relative;">
                   <div class="vs-service__figure" style="position: relative; overflow: hidden; border-radius: 20px 20px 0 0;">
                     <a href="families" class="vs-service__image--link" style="display: block; position: relative; overflow: hidden;">
@@ -2382,7 +2382,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-lg-4 col-md-6 swiper-slide">
+              <div class="swiper-slide">
                 <div class="vs-service wow animate__fadeInUp" data-wow-delay="0.65s" style="border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: all 0.3s ease; overflow: hidden; background: white; position: relative;">
                   <div class="vs-service__figure" style="position: relative; overflow: hidden; border-radius: 20px 20px 0 0;">
                     <a href="partners.html" class="vs-service__image--link" style="display: block; position: relative; overflow: hidden;">
@@ -2506,7 +2506,7 @@
           </div>
         </div>
         <div class="z-index-common" style="position: relative; z-index: 2;">
-          <div class="vs-carousel vs-carousel--class swiper" data-xl="4" data-lg="3" data-autoplay="false" data-loop="true" data-autoplay-delay="6000" data-nav-next="#swiper-button-next" data-nav-prev="#swiper-button-prev">
+          <div class="vs-carousel vs-carousel--class swiper" data-xl="4" data-lg="3" data-md="2" data-sm="1" data-xs="1" data-autoplay="false" data-loop="true" data-autoplay-delay="6000" data-nav-next="#swiper-button-next" data-nav-prev="#swiper-button-prev">
             <div class="swiper-wrapper">
               <div class="swiper-slide wow animate__fadeInUp" data-wow-delay="0.25s">
                 <div class="vs-class">
