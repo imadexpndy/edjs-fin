@@ -477,11 +477,11 @@
             <div class="col-auto">
               <div class="vs-header__action">
                 <div class="vs-header__right d-none d-md-inline-flex" style="display: flex; gap: 15px; align-items: center;">
-                  <button class="auth-btn login-btn" onclick="showLoginModal()">
+                  <button class="auth-btn login-btn" onclick="window.authManager?.showLoginModal() || window.open('https://edjs.art/auth', '_blank')">
                     <i class="fas fa-user-circle"></i>
                     Se connecter
                   </button>
-                  <button class="auth-btn register-btn" onclick="window.open('http://localhost:8080/auth?mode=register', '_blank')">
+                  <button class="auth-btn register-btn" onclick="window.open('https://edjs.art/auth?mode=register', '_blank')">
                     <i class="fas fa-star"></i>
                     S'inscrire
                   </button>
